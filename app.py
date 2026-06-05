@@ -30,7 +30,7 @@ def home():
 
 <style>
 body {
-    font-family: Arial;
+    font-family: 'Poppins', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
