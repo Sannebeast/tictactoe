@@ -28,6 +28,8 @@ def home():
 <head>
 <title>Tic Tac Toe</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
 <style>
 body {
     font-family: 'Poppins', sans-serif;
@@ -85,14 +87,27 @@ button.cell:hover {
 .status {
     margin-top: 15px;
     font-size: 20px;
-    font-weight: bold;
+    font-weight: 600;
 }
 
 .newgame {
     margin-top: 15px;
-    padding: 10px 20px;
+    padding: 12px 24px;
     font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 12px;
+    color: #333;
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.25s ease;
+}
+
+.newgame:hover {
+    background: rgba(255,255,255,0.85);
+    transform: scale(1.03);
 }
 </style>
 
@@ -192,7 +207,6 @@ def move():
     if not game:
         return "No game", 400
 
-    # stop if game already won
     if game.get("winner"):
         return jsonify(game)
 
