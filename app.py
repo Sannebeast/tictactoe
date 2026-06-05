@@ -27,6 +27,7 @@ def home():
 <html>
 <head>
 <title>Tic Tac Toe</title>
+<subtitle> Click 'New Game' to start playing! </subtitle>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
@@ -84,30 +85,48 @@ button.cell:hover {
     color: blue;
 }
 
-.status {
-    margin-top: 15px;
-    font-size: 20px;
-    font-weight: 600;
-}
-
 .newgame {
     margin-top: 15px;
     padding: 12px 24px;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.3);
+    border: none;
     border-radius: 12px;
-    color: #333;
-    background: rgba(255,255,255,0.6);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    transition: all 0.25s ease;
+    color: blue;
+    background: #007bff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    transition: all 0.2s ease;
 }
 
 .newgame:hover {
-    background: rgba(255,255,255,0.85);
+    background: #0069d9;
     transform: scale(1.03);
+}
+
+.savegame {
+    margin-top: 15px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    border-radius: 12px;
+    color: green;
+    background: #28a745;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    transition: all 0.2s ease;
+}
+
+.savegame:hover {
+    background: #218838;
+    transform: scale(1.03);
+}
+
+.status {
+    margin-top: 15px;
+    font-size: 20px;
+    font-weight: 600;
 }
 </style>
 
@@ -118,10 +137,11 @@ button.cell:hover {
 <div class="container">
     <h1>Tic Tac Toe</h1>
 
-    <button class="newgame" onclick="newGame()">New Game</button>
-
     <div id="status"></div>
+
     <div id="board"></div>
+
+    <div id="buttons"></div>
 </div>
 
 <script>
@@ -129,6 +149,12 @@ button.cell:hover {
 async function newGame(){
     await fetch('/new');
     load();
+}
+
+async function saveGame(){
+    // placeholder for Firestore later
+    await fetch('/save', { method: 'POST' });
+    alert("Game saved (placeholder)");
 }
 
 async function move(i){
@@ -162,13 +188,25 @@ async function load(){
     document.getElementById("board").innerHTML = html;
 
     let status = "";
+    let buttons = "";
+
     if (data.winner) {
         status = "🏆 Winner: " + data.winner;
+
+        buttons = `
+            <button class="savegame" onclick="saveGame()">Save game</button>
+            <button class="newgame" onclick="newGame()">New Game</button>
+        `;
     } else {
         status = "Turn: " + data.turn;
+
+        buttons = `
+            <button class="newgame" onclick="newGame()">New Game</button>
+        `;
     }
 
     document.getElementById("status").innerHTML = status;
+    document.getElementById("buttons").innerHTML = buttons;
 }
 
 load();
@@ -221,6 +259,13 @@ def move():
             game["turn"] = "O" if game["turn"] == "X" else "X"
 
     return jsonify(game)
+
+
+# placeholder for later Firestore integration
+@app.route("/save", methods=["POST"])
+def save():
+    game = games.get("current")
+    return jsonify({"status": "saved_placeholder", "game": game})
 
 
 if __name__ == "__main__":
