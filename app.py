@@ -79,13 +79,8 @@ button.cell:hover {
     background: #f0f0f0;
 }
 
-.x {
-    color: red;
-}
-
-.o {
-    color: blue;
-}
+.x { color: red; }
+.o { color: blue; }
 
 .newgame {
     margin-top: 15px;
@@ -141,9 +136,7 @@ button.cell:hover {
     <p>Click "New Game" to start playing!</p>
 
     <div id="status"></div>
-
     <div id="board"></div>
-
     <div id="buttons"></div>
 </div>
 
@@ -155,9 +148,14 @@ async function newGame(){
 }
 
 async function saveGame(){
-    // placeholder for Firestore later
-    await fetch('/save', { method: 'POST' });
-    alert("Game saved (placeholder)");
+    let res = await fetch('/save', { method: 'POST' });
+    let data = await res.json();
+
+    if (res.ok) {
+        alert("Game saved! ID: " + data.gameId);
+    } else {
+        alert("Save failed: " + data.error);
+    }
 }
 
 async function move(i){
@@ -176,7 +174,6 @@ async function load(){
     let html = "";
 
     data.board.forEach((v,i)=>{
-
         let cls = "";
         if (v === "X") cls = "x";
         if (v === "O") cls = "o";
