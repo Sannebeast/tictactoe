@@ -26,10 +26,7 @@ def home():
 <!DOCTYPE html>
 <html>
 <head>
-<header>
-    <h1>Tic Tac Toe</h1>
-    <p class="subtitle">Click "New Game" to start playing!</p>
-</header>
+<title>Tic Tac Toe</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
@@ -42,18 +39,6 @@ body {
     height: 100vh;
     margin: 0;
     background: #f4f6f8;
-}
-
-header {
-    text-align: center;
-}
-
-.subtitle {
-    text-align: center;
-    font-size: 16px;
-    color: #666;
-    margin-top: -5px;
-    margin-bottom: 20px;
 }
 
 .container {
@@ -150,6 +135,7 @@ button.cell:hover {
 
 <div class="container">
     <h1>Tic Tac Toe</h1>
+    <p>Click "New Game" to start playing!</p>
 
     <div id="status"></div>
 
