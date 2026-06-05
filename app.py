@@ -24,7 +24,8 @@ def check_winner(b):
 
 @app.route("/")
 def home():
-    return """<!DOCTYPE html>
+    return """
+<!DOCTYPE html>
 <html>
 <head>
 <title>Tic Tac Toe</title>
@@ -66,6 +67,11 @@ button.cell {
     cursor: pointer;
     border: 2px solid #333;
     background: #fff;
+    transition: 0.2s;
+}
+
+button.cell:hover {
+    background: #f0f0f0;
 }
 
 .x { color: red; }
@@ -76,6 +82,29 @@ button.cell {
     font-size: 20px;
     font-weight: 600;
 }
+
+.newgame {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: 600;
+
+    cursor: pointer;
+    border: none;
+    border-radius: 12px;
+
+    background: #4f46e5;
+    color: white;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: 0.2s;
+}
+
+.newgame:hover {
+    background: #4338ca;
+    transform: scale(1.05);
+}
 </style>
 
 </head>
@@ -85,7 +114,7 @@ button.cell {
 <div class="container">
     <h1>Tic Tac Toe</h1>
 
-    <button onclick="newGame()">New Game</button>
+    <button class="newgame" onclick="newGame()">New Game</button>
 
     <div id="status"></div>
     <div id="board"></div>
@@ -94,7 +123,8 @@ button.cell {
 <script>
 
 async function newGame(){
-    await fetch('/new');
+    await fetch('/new', { method: 'POST' });
+    await new Promise(r => setTimeout(r, 100));
     load();
 }
 
@@ -137,10 +167,11 @@ load();
 </script>
 
 </body>
-</html>"""
+</html>
+"""
 
 
-@app.route("/new")
+@app.route("/new", methods=["POST"])
 def new_game():
     game = {
         "board": create_board(),
@@ -157,12 +188,11 @@ def state():
     doc = games_ref.document("current").get()
 
     if not doc.exists:
-        game = {
+        return jsonify({
             "board": create_board(),
             "turn": "X",
             "winner": None
-        }
-        return jsonify(game)
+        })
 
     return jsonify(doc.to_dict())
 
@@ -179,11 +209,9 @@ def move():
 
     game = doc.to_dict()
 
-    # stop if game already finished
     if game.get("winner"):
         return jsonify(game)
 
-    # valid move only
     if game["board"][pos] == "":
         game["board"][pos] = game["turn"]
 
@@ -194,7 +222,6 @@ def move():
         else:
             game["turn"] = "O" if game["turn"] == "X" else "X"
 
-        # SAVE TO FIRESTORE
         doc_ref.set(game)
 
     return jsonify(game)
