@@ -1,9 +1,7 @@
 from flask import Flask, request, jsonify
-import random
 
 app = Flask(__name__)
 
-# in-memory fallback (we will later connect Firestore properly)
 games = {}
 
 def create_board():
@@ -25,52 +23,143 @@ def check_winner(b):
 @app.route("/")
 def home():
     return """
-    <h2>Tic Tac Toe</h2>
-    <button onclick="fetch('/new').then(r=>r.json()).then(d=>location.reload())">
-        New Game
-    </button>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tic Tac Toe</title>
+<style>
+    body {
+        font-family: Arial;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: #f4f6f8;
+        margin: 0;
+    }
+
+    .container {
+        text-align: center;
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+        margin-bottom: 10px;
+    }
+
+    #board {
+        display: grid;
+        grid-template-columns: repeat(3, 100px);
+        grid-gap: 8px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+
+    button.cell {
+        width: 100px;
+        height: 100px;
+        font-size: 32px;
+        font-weight: bold;
+        cursor: pointer;
+        border: 2px solid #333;
+        background: #fff;
+        transition: 0.2s;
+    }
+
+    button.cell:hover {
+        background: #f0f0f0;
+    }
+
+    .status {
+        margin-top: 15px;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .newgame {
+        margin-top: 15px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Tic Tac Toe</h1>
+
+    <button class="newgame" onclick="newGame()">New Game</button>
+
+    <div id="status"></div>
     <div id="board"></div>
+</div>
 
-    <script>
-    async function load() {
-        let res = await fetch('/state');
-        let data = await res.json();
-
-        let html = "";
-        data.board.forEach((v,i)=>{
-            html += `<button onclick="move(${i})" style="width:40px;height:40px">${v}</button>`;
-            if ((i+1)%3==0) html += "<br>";
-        });
-
-        document.getElementById("board").innerHTML = html;
-    }
-
-    async function move(i){
-        await fetch('/move', {
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({pos:i})
-        });
-        load();
-    }
-
+<script>
+async function newGame(){
+    await fetch('/new');
     load();
-    </script>
-    """
+}
+
+async function move(i){
+    await fetch('/move', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({pos:i})
+    });
+    load();
+}
+
+async function load(){
+    let res = await fetch('/state');
+    let data = await res.json();
+
+    let html = "";
+
+    data.board.forEach((v,i)=>{
+        html += `<button class="cell" onclick="move(${i})" ${v || data.winner ? "disabled" : ""}>${v}</button>`;
+    });
+
+    document.getElementById("board").innerHTML = html;
+
+    let status = "";
+    if (data.winner) {
+        status = "🏆 Winner: " + data.winner;
+    } else {
+        status = "Turn: " + data.turn;
+    }
+
+    document.getElementById("status").innerHTML = status;
+}
+
+load();
+</script>
+
+</body>
+</html>
+"""
 
 
 @app.route("/new")
 def new_game():
     games["current"] = {
         "board": create_board(),
-        "turn": "X"
+        "turn": "X",
+        "winner": None
     }
     return jsonify(games["current"])
 
 
 @app.route("/state")
 def state():
-    return jsonify(games.get("current", {"board": create_board(), "turn":"X"}))
+    return jsonify(games.get("current", {
+        "board": create_board(),
+        "turn": "X",
+        "winner": None
+    }))
 
 
 @app.route("/move", methods=["POST"])
@@ -81,10 +170,15 @@ def move():
     if not game:
         return "No game", 400
 
+    # STOP IF WINNER EXISTS
+    if game.get("winner"):
+        return jsonify(game)
+
     if game["board"][pos] == "":
         game["board"][pos] = game["turn"]
 
         winner = check_winner(game["board"])
+
         if winner:
             game["winner"] = winner
         else:
