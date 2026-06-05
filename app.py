@@ -26,8 +26,10 @@ def home():
 <!DOCTYPE html>
 <html>
 <head>
-<title>Tic Tac Toe</title>
-<subtitle> Click 'New Game' to start playing! </subtitle>
+<header>
+    <h1>Tic Tac Toe</h1>
+    <p class="subtitle">Click "New Game" to start playing!</p>
+</header>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
@@ -40,6 +42,18 @@ body {
     height: 100vh;
     margin: 0;
     background: #f4f6f8;
+}
+
+header {
+    text-align: center;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 16px;
+    color: #666;
+    margin-top: -5px;
+    margin-bottom: 20px;
 }
 
 .container {
