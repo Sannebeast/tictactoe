@@ -6,8 +6,10 @@ app = Flask(__name__)
 db = firestore.Client()
 games_ref = db.collection("games")
 
+
 def create_board():
     return [""] * 9
+
 
 def check_winner(b):
     wins = [
@@ -49,13 +51,16 @@ body {
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 #board {
     display: grid;
     grid-template-columns: repeat(3, 100px);
-    grid-gap: 8px;
-    justify-content: center;
+    gap: 8px;
     margin-top: 20px;
 }
 
@@ -67,10 +72,16 @@ button.cell {
     cursor: pointer;
     border: 2px solid #333;
     background: #fff;
-    transition: 0.2s;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: 0.15s;
 }
 
-button.cell:hover {
+button.cell:hover:not(:disabled) {
+    transform: scale(1.05);
     background: #f0f0f0;
 }
 
@@ -149,11 +160,13 @@ async function load(){
         if (v === "X") cls = "x";
         if (v === "O") cls = "o";
 
+        let display = v ? v : "";
+
         html += `<button class="cell ${cls}"
-                    onclick="move(${i})"
-                    ${v || data.winner ? "disabled" : ""}>
-                    ${v}
-                 </button>`;
+            onclick="move(${i})"
+            ${v || data.winner ? "disabled" : ""}>
+            ${display}
+        </button>`;
     });
 
     document.getElementById("board").innerHTML = html;
