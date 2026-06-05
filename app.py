@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from google.cloud import firestore
 import uuid
-from datetime import datetime
 
 app = Flask(__name__)
 db = firestore.Client()
@@ -272,21 +271,31 @@ def save():
     if not game:
         return jsonify({"error": "No active game"}), 400
 
-    # create unique id for each saved game
-    game_id = str(uuid.uuid4())
+    try:
+        game_id = str(uuid.uuid4())
 
-    db.collection("games").document(game_id).set({
-        "board": game["board"],
-        "turn": game["turn"],
-        "winner": game.get("winner"),
-        "createdAt": firestore.SERVER_TIMESTAMP
-    })
+        doc_ref = db.collection("games").document(game_id)
 
-    return jsonify({
-        "status": "saved",
-        "gameId": game_id
-    })
+        doc_ref.set({
+            "board": game["board"],
+            "turn": game["turn"],
+            "winner": game.get("winner"),
+            "createdAt": firestore.SERVER_TIMESTAMP
+        })
 
+        return jsonify({
+            "status": "saved",
+            "gameId": game_id
+        })
+
+    except Exception as e:
+        # VERY IMPORTANT for debugging on Cloud Run
+        print("FIRESTORE ERROR:", str(e))
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
