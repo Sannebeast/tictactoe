@@ -3,7 +3,7 @@ from google.cloud import firestore
 import uuid
 
 app = Flask(__name__)
-db = firestore.Client(project="cloudcomputing")
+db = firestore.Client(project="cloudcomputing-498308")
 
 games = {}
 
