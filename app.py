@@ -1,15 +1,11 @@
 from flask import Flask, request, jsonify
-from google.cloud import firestore
 
 app = Flask(__name__)
 
-db = firestore.Client()
-games_ref = db.collection("games")
-
+games = {}
 
 def create_board():
     return [""] * 9
-
 
 def check_winner(b):
     wins = [
@@ -51,16 +47,17 @@ body {
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+h1 {
+    margin-bottom: 10px;
 }
 
 #board {
     display: grid;
     grid-template-columns: repeat(3, 100px);
-    gap: 8px;
+    grid-gap: 8px;
+    justify-content: center;
     margin-top: 20px;
 }
 
@@ -72,21 +69,20 @@ button.cell {
     cursor: pointer;
     border: 2px solid #333;
     background: #fff;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    transition: 0.15s;
+    transition: 0.2s;
 }
 
-button.cell:hover:not(:disabled) {
-    transform: scale(1.05);
+button.cell:hover {
     background: #f0f0f0;
 }
 
-.x { color: red; }
-.o { color: blue; }
+.x {
+    color: red;
+}
+
+.o {
+    color: blue;
+}
 
 .status {
     margin-top: 15px;
@@ -95,26 +91,23 @@ button.cell:hover:not(:disabled) {
 }
 
 .newgame {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding: 10px 20px;
+    margin-top: 15px;
+    padding: 12px 24px;
     font-size: 16px;
     font-weight: 600;
-
     cursor: pointer;
-    border: none;
+    border: 1px solid rgba(255,255,255,0.3);
     border-radius: 12px;
-
-    background: #4f46e5;
-    color: white;
-
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transition: 0.2s;
+    color: #333;
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.25s ease;
 }
 
 .newgame:hover {
-    background: #4338ca;
-    transform: scale(1.05);
+    background: rgba(255,255,255,0.85);
+    transform: scale(1.03);
 }
 </style>
 
@@ -134,8 +127,7 @@ button.cell:hover:not(:disabled) {
 <script>
 
 async function newGame(){
-    await fetch('/new', { method: 'POST' });
-    await new Promise(r => setTimeout(r, 100));
+    await fetch('/new');
     load();
 }
 
@@ -160,19 +152,23 @@ async function load(){
         if (v === "X") cls = "x";
         if (v === "O") cls = "o";
 
-        let display = v ? v : "";
-
         html += `<button class="cell ${cls}"
-            onclick="move(${i})"
-            ${v || data.winner ? "disabled" : ""}>
-            ${display}
-        </button>`;
+                    onclick="move(${i})"
+                    ${v || data.winner ? "disabled" : ""}>
+                    ${v}
+                 </button>`;
     });
 
     document.getElementById("board").innerHTML = html;
 
-    document.getElementById("status").innerHTML =
-        data.winner ? "🏆 Winner: " + data.winner : "Turn: " + data.turn;
+    let status = "";
+    if (data.winner) {
+        status = "🏆 Winner: " + data.winner;
+    } else {
+        status = "Turn: " + data.turn;
+    }
+
+    document.getElementById("status").innerHTML = status;
 }
 
 load();
@@ -184,43 +180,32 @@ load();
 """
 
 
-@app.route("/new", methods=["POST"])
+@app.route("/new")
 def new_game():
-    game = {
+    games["current"] = {
         "board": create_board(),
         "turn": "X",
         "winner": None
     }
-
-    games_ref.document("current").set(game)
-    return jsonify(game)
+    return jsonify(games["current"])
 
 
 @app.route("/state")
 def state():
-    doc = games_ref.document("current").get()
-
-    if not doc.exists:
-        return jsonify({
-            "board": create_board(),
-            "turn": "X",
-            "winner": None
-        })
-
-    return jsonify(doc.to_dict())
+    return jsonify(games.get("current", {
+        "board": create_board(),
+        "turn": "X",
+        "winner": None
+    }))
 
 
 @app.route("/move", methods=["POST"])
 def move():
     pos = request.json["pos"]
 
-    doc_ref = games_ref.document("current")
-    doc = doc_ref.get()
-
-    if not doc.exists:
+    game = games.get("current")
+    if not game:
         return "No game", 400
-
-    game = doc.to_dict()
 
     if game.get("winner"):
         return jsonify(game)
@@ -234,8 +219,6 @@ def move():
             game["winner"] = winner
         else:
             game["turn"] = "O" if game["turn"] == "X" else "X"
-
-        doc_ref.set(game)
 
     return jsonify(game)
 
