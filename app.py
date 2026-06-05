@@ -14,7 +14,7 @@ def check_winner(b):
         [0,4,8],[2,4,6]
     ]
 
-    for a,b1,c in wins:
+    for a, b1, c in wins:
         if b[a] == b[b1] == b[c] and b[a] != "":
             return b[a]
     return None
@@ -27,66 +27,77 @@ def home():
 <html>
 <head>
 <title>Tic Tac Toe</title>
+
 <style>
-    body {
-        font-family: Arial;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background: #f4f6f8;
-        margin: 0;
-    }
+body {
+    font-family: Arial;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: #f4f6f8;
+}
 
-    .container {
-        text-align: center;
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    }
+.container {
+    text-align: center;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
 
-    h1 {
-        margin-bottom: 10px;
-    }
+h1 {
+    margin-bottom: 10px;
+}
 
-    #board {
-        display: grid;
-        grid-template-columns: repeat(3, 100px);
-        grid-gap: 8px;
-        justify-content: center;
-        margin-top: 20px;
-    }
+#board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-gap: 8px;
+    justify-content: center;
+    margin-top: 20px;
+}
 
-    button.cell {
-        width: 100px;
-        height: 100px;
-        font-size: 32px;
-        font-weight: bold;
-        cursor: pointer;
-        border: 2px solid #333;
-        background: #fff;
-        transition: 0.2s;
-    }
+button.cell {
+    width: 100px;
+    height: 100px;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 2px solid #333;
+    background: #fff;
+    transition: 0.2s;
+}
 
-    button.cell:hover {
-        background: #f0f0f0;
-    }
+button.cell:hover {
+    background: #f0f0f0;
+}
 
-    .status {
-        margin-top: 15px;
-        font-size: 20px;
-        font-weight: bold;
-    }
+.x {
+    color: red;
+}
 
-    .newgame {
-        margin-top: 15px;
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-    }
+.o {
+    color: blue;
+}
+
+.status {
+    margin-top: 15px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.newgame {
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
 </style>
+
 </head>
+
 <body>
 
 <div class="container">
@@ -99,6 +110,7 @@ def home():
 </div>
 
 <script>
+
 async function newGame(){
     await fetch('/new');
     load();
@@ -120,7 +132,16 @@ async function load(){
     let html = "";
 
     data.board.forEach((v,i)=>{
-        html += `<button class="cell" onclick="move(${i})" ${v || data.winner ? "disabled" : ""}>${v}</button>`;
+
+        let cls = "";
+        if (v === "X") cls = "x";
+        if (v === "O") cls = "o";
+
+        html += `<button class="cell ${cls}"
+                    onclick="move(${i})"
+                    ${v || data.winner ? "disabled" : ""}>
+                    ${v}
+                 </button>`;
     });
 
     document.getElementById("board").innerHTML = html;
@@ -136,6 +157,7 @@ async function load(){
 }
 
 load();
+
 </script>
 
 </body>
@@ -170,7 +192,7 @@ def move():
     if not game:
         return "No game", 400
 
-    # STOP IF WINNER EXISTS
+    # stop if game already won
     if game.get("winner"):
         return jsonify(game)
 
