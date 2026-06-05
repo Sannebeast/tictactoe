@@ -1,6 +1,10 @@
 from flask import Flask, request, jsonify
+from google.cloud import firestore
+import uuid
+from datetime import datetime
 
 app = Flask(__name__)
+db = firestore.Client()
 
 games = {}
 
@@ -261,11 +265,27 @@ def move():
     return jsonify(game)
 
 
-# placeholder for later Firestore integration
 @app.route("/save", methods=["POST"])
 def save():
     game = games.get("current")
-    return jsonify({"status": "saved_placeholder", "game": game})
+
+    if not game:
+        return jsonify({"error": "No active game"}), 400
+
+    # create unique id for each saved game
+    game_id = str(uuid.uuid4())
+
+    db.collection("games").document(game_id).set({
+        "board": game["board"],
+        "turn": game["turn"],
+        "winner": game.get("winner"),
+        "createdAt": firestore.SERVER_TIMESTAMP
+    })
+
+    return jsonify({
+        "status": "saved",
+        "gameId": game_id
+    })
 
 
 if __name__ == "__main__":
