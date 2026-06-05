@@ -3,7 +3,7 @@ from google.cloud import firestore
 import uuid
 
 app = Flask(__name__)
-db = firestore.Client()
+db = firestore.Client(project="cloudcomputing")
 
 games = {}
 
@@ -266,22 +266,24 @@ def move():
 
 @app.route("/save", methods=["POST"])
 def save():
-    game = games.get("current")
-
-    if not game:
-        return jsonify({"error": "No active game"}), 400
-
     try:
+        game = games.get("current")
+
+        if not game:
+            return jsonify({"error": "No active game"}), 400
+
         game_id = str(uuid.uuid4())
 
-        doc_ref = db.collection("games").document(game_id)
+        print("ABOUT TO WRITE TO FIRESTORE")
 
-        doc_ref.set({
+        db.collection("games").document(game_id).set({
             "board": game["board"],
             "turn": game["turn"],
             "winner": game.get("winner"),
             "createdAt": firestore.SERVER_TIMESTAMP
         })
+
+        print("WRITE SUCCESS")
 
         return jsonify({
             "status": "saved",
@@ -289,13 +291,8 @@ def save():
         })
 
     except Exception as e:
-        # VERY IMPORTANT for debugging on Cloud Run
         print("FIRESTORE ERROR:", str(e))
-
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
