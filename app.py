@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from google.cloud import firestore
-import uuid
+from datetime import datetime
 
 app = Flask(__name__)
 db = firestore.Client(project="cloudcomputing-498308")
@@ -269,7 +269,7 @@ def save():
         if not game:
             return jsonify({"error": "No active game"}), 400
 
-        game_id = str(uuid.uuid4())
+        game_id = "game-" + datetime.now().strftime("%Y%m%d-%H%M%S")
 
         print("ABOUT TO WRITE TO FIRESTORE")
 
